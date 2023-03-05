@@ -59,8 +59,6 @@ def element_wise_sum(list1,list2):
         result.append(list1[index] + list2[index])
     return result
 
-print(element_wise_sum(input_list_1,input_list_2))
-
 
 #Készíts egy függvényt ami paraméterként egy dictionary-t vár és egy listával tér vissza
 #amiben a kulcs:érték párok egy Tuple-ben vannak.
