@@ -27,8 +27,9 @@ def column_swap(np_arr: np.array):
 # egyenlő elemszámúakra kell csak hogy működjön
 
 
-def compare_two_array(arr1:np.array, arr2:np.array): 
-    return np.where(arr1 == arr2)[0]
+def compare_two_array(array1, array2):
+    equal_indices = np.where(array1 == array2)[0]
+    return equal_indices
 
 
 # Készíts egy olyan függvényt, ami vissza adja string-ként a megadott array dimenzióit:
@@ -59,12 +60,11 @@ def get_array_shape(arr):
 # encode_Y()
 
 
-def encode_Y(Y, num_classes):
-    encoded_Y = np.zeros((num_classes, len(Y)))
-    for i in range(len(Y)):
-        if Y[i] != 0:
-            encoded_Y[Y[i]-1, i] = 1
-    return encoded_Y.astype(int)
+def encode_Y(arr:np.array, num_classes) ->np.array:
+    encoded_arr = np.zeros((len(arr), num_classes))
+    for i in range(len(arr)):
+        encoded_arr[i][arr[i]] = 1
+    return encoded_arr
 
 
 # A fenti feladatnak valósítsd meg a kiértékelését. Adj meg a 2d array-t és adj vissza a decodolt változatát
@@ -73,10 +73,9 @@ def encode_Y(Y, num_classes):
 # decode_Y()
 
 
-def decode_Y(encoded_Y):
-    decoded_Y = np.argmax(encoded_Y, axis=0) + 1
-    decoded_Y[encoded_Y.sum(axis=0) == 0] = 0
-    return decoded_Y
+def decode_Y(y:np.array) ->np.array:
+    decoded_y = np.argmax(y, axis=1)
+    return decoded_y
 
 
 # Készíts egy olyan függvényt, ami képes kiértékelni egy neurális háló eredményét! Bemenetként egy listát és egy array-t és adja vissza azt az elemet, aminek a legnagyobb a valószínüsége(értéke) a listából.
@@ -159,14 +158,25 @@ def add_border(arr):
 # list_days()
 
 
+from datetime import datetime, timedelta
+
+from datetime import datetime, timedelta
+
+def list_days(start_date, end_date):
+    start = datetime.strptime(start_date, '%Y-%m')
+    end = datetime.strptime(end_date, '%Y-%m')
+    num_days = (end - start).days + 1
+    days = np.array([start + timedelta(days=i) for i in range(num_days)])
+    return np.char.array(days.astype(str))
+
+
 # Írj egy fügvényt ami vissza adja az aktuális dátumot az alábbi formában: YYYY-MM-DD. Térjen vissza egy 'numpy.datetime64' típussal.
 # Be:
 # Ki: 2017-03-24
 
 
-def get_current_date():
-    today = np.datetime64('today')
-    return today.astype('datetime64[D]')
+def get_act_date():
+    return np.datetime64('today')
 
 
 # Írj egy olyan függvényt ami visszadja, hogy mennyi másodperc telt el 1970 január 01. 00:02:00 óta. Int-el térjen vissza
