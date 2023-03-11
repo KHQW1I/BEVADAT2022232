@@ -158,7 +158,6 @@ def add_border(arr):
 # list_days()
 
 
-from datetime import datetime, timedelta
 
 from datetime import datetime, timedelta
 
