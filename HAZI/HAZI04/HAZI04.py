@@ -61,9 +61,10 @@ függvény neve: math_passed_count
 '''
 
 
-def math_passed_count(df):
-    passed_students = df[df['math score'] > 50]
-    return len(passed_students)
+def math_passed_count(df) -> int:
+    new_df = df.copy()
+    passed = new_df['math score'] >= 50
+    return passed.sum()
 
 
 '''
@@ -77,8 +78,8 @@ függvény neve: did_pre_course
 
 
 def did_pre_course(df):
-    pre_course_students = df[df['test preparation course'] == True]
-    return pre_course_students
+    new_df = df.copy()
+    return new_df[new_df['test preparation course'] == 'completed']
 
 
 '''
@@ -152,20 +153,16 @@ függvény neve: add_grade
 
 
 def add_grade(df):
-    df['percentage'] = (df['math score'] + df['reading score'] + df['writing score']) / 300
-    def get_grade(score):
-        if score >= 0.9:
-            return 'A'
-        elif score >= 0.8:
-            return 'B'
-        elif score >= 0.7:
-            return 'C'
-        elif score >= 0.6:
-            return 'D'
-        else:
-            return 'F'
-    df['grade'] = df['percentage'].apply(get_grade)
-    return df
+    df_data = df.copy()
+    total_scores = df_data['math score'] + df_data['reading score'] + df_data['writing score']
+    percentages = total_scores / 300
+    df_data['grade'] = ''
+    df_data.loc[percentages >= 0.9, 'grade'] = 'A'
+    df_data.loc[(percentages >= 0.8) & (percentages < 0.9), 'grade'] = 'B'
+    df_data.loc[(percentages >= 0.7) & (percentages < 0.8), 'grade'] = 'C'
+    df_data.loc[(percentages >= 0.6) & (percentages < 0.7), 'grade'] = 'D'
+    df_data.loc[percentages < 0.6, 'grade'] = 'F'
+    return df_data
 
 
 '''
@@ -183,13 +180,13 @@ függvény neve: math_bar_plot
 '''
 
 
-import seaborn as sns
-
-def math_bar_plot(df):
-    gender_grouped = df.groupby('gender')['math score'].mean()
+def math_bar_plot(df_input):
+    df = df_input.copy()
+    avg_math_by_gender = df.groupby('gender')['math score'].mean()
 
     fig, ax = plt.subplots()
-    ax = sns.barplot(x=gender_grouped.index, y=gender_grouped)
+    ax.bar(avg_math_by_gender.index, avg_math_by_gender.values)
+
     ax.set_title('Average Math Score by Gender')
     ax.set_xlabel('Gender')
     ax.set_ylabel('Math Score')
@@ -212,16 +209,14 @@ függvény neve: writing_hist
 '''
 
 
-def writing_hist(df):
+def writing_hist(df_input):
+    df = df_input.copy()
     fig, ax = plt.subplots()
+    ax.hist(df['writing score'], bins=20)
 
-    ax.hist(df['writing score'], bins=20, edgecolor='black')
-
+    ax.set_title('Distribution of Writing Scores')
     ax.set_xlabel('Writing Score')
     ax.set_ylabel('Number of Students')
-    ax.set_title('Distribution of Writing Scores')
-
-    plt.show()
 
     return fig
 
