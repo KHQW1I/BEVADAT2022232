@@ -1,67 +1,68 @@
 import numpy as np
-import seaborn as sns
 from typing import Tuple
 from scipy.stats import mode
 from sklearn.metrics import confusion_matrix
-
-
-# csv_path = './archive/iris.csv'
-
+import seaborn as sns
 
 class KNNClassifier:
-    
-    def __init__(self, k:int, test_split_ratio:float):
-        self.k = k
-        self.test_split_ratio = test_split_ratio
-        self.x_train = None
-        self.y_train = None
-        self.x_test = None
-        self.y_test = None
 
     @property
     def k_neighbors(self):
         return self.k
-    
+
+
+    def  __init__(self, k: int, test_split_ratio: float) -> None:
+        self.k = k
+        self.test_split_ratio = test_split_ratio
+
+
     @staticmethod
-    def load_csv(self, csv_path:str) -> Tuple[np.ndarray, np.ndarray]:
+    def load_csv(csv_path: str) -> Tuple[np.ndarray, np.ndarray]:
         np.random.seed(42)
         dataset = np.genfromtxt(csv_path, delimiter=',')
         np.random.shuffle(dataset)
-        x, y = dataset[:,:4], dataset[:,-1]
-        x[np.isnan(x)] = 3.5
-        x = np.delete(x, np.where(np.logical_or(x > 13.0, x < 0.0))[0], axis=0)
-        y = np.delete(y, np.where(np.logical_or(x > 13.0, x < 0.0))[0], axis=0)
-        self.train_test_split(x, y)
-        
+        x, y = dataset[:, : -1], dataset[:, -1]
+        return x, y
     
-    def train_test_split(self, features: np.ndarray, labels: np.ndarray) -> None:
+
+    def train_test_split(self, features: np.ndarray,
+                        labels: np.ndarray) -> None:
         test_size = int(len(features) * self.test_split_ratio)
         train_size = len(features) - test_size
         assert len(features) == test_size + train_size, "Size mismatch!"
 
-        self.x_train, self.y_train = features[:train_size, :], labels[:train_size]
-        self.x_test, self.y_test = features[train_size:train_size + test_size, :], labels[train_size:train_size + test_size]
+        x_train, y_train = features[:train_size, :], labels[:train_size]
+        x_test, y_test = features[train_size:, :], labels[train_size:]
+        
+        self.x_train = x_train
+        self.y_train = y_train
+        self.x_test = x_test
+        self.y_test = y_test
 
 
     def euclidean(self, element_of_x: np.ndarray) -> np.ndarray:
-        return np.sqrt(np.sum((self.x_train - element_of_x) ** 2, axis=1))
+        return np.sqrt(np.sum((self.x_train - element_of_x)**2, axis=1))
+    
 
-    def predict(self):
-        self.y_preds = []
-        for element_of_x in self.x_test:
-            distances = self.euclidean(element_of_x)
-            sorted_distances_indices = np.argsort(distances)
-            k_nearest_labels = self.y_train[sorted_distances_indices[:self.k]]
-            most_common_label = np.argmax(np.bincount(k_nearest_labels.astype(int)))
-            self.y_preds.append(most_common_label)
-        return self.y_preds
+    def predict(self, x_test: np.ndarray)-> np.ndarray:
+        labels_pred = []
+        for x_test_element in x_test:
 
-    def accuracy(self):
-        correct_predictions = np.sum(self.y_preds == self.y_test)
-        accuracy = correct_predictions / len(self.y_test)
-        return accuracy
+            # tavolsagok meghatarozasa
+            distances = self.euclidean(x_test_element)
+            distances = np.array(sorted(zip(distances, self.y_train)))
 
-    def confusion_matrix(self):
-        return confusion_matrix(self.y_test, self.y_preds) 
+            # kiszedjuk a leggyakoribb labelt
+            label_pred = mode(distances[:self.k, 1], keepdims = False).mode
+        
+            labels_pred.append(label_pred)
+        self.y_preds = np.array(labels_pred, dtype=np.int64)
+    
 
+    def accuracy(self) -> float:
+        true_positive = (self.y_test == self.y_preds).sum()
+        return true_positive / len(self.y_test) * 100
+    
 
+    def confusion_matrix(self) -> np.ndarray:
+        return confusion_matrix(self.y_test, self.y_preds)
